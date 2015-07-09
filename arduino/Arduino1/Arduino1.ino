@@ -36,6 +36,7 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 // mag stuff
 /* Assign a unique ID to this sensor at the same time */
 Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
+float headingDegrees;
 
 // loop vars
 unsigned long nextOutput = 0;       // when next update should occour
@@ -56,9 +57,9 @@ RunningMedian sonar_Median[SONAR_NUM] = {     // Sensor medians object array.
 };
 
 NewPing sonar[SONAR_NUM] = {    // Sensor object array.
-  NewPing( 3, 3, MAX_DISTANCE), // going for single Arduino pin
-  NewPing( 4, 4, MAX_DISTANCE), // as per https://code.google.com/p/arduino-new-ping/wiki/NewPing_Single_Pin_Sketch
-  NewPing( 5, 5, MAX_DISTANCE)
+  NewPing( 4, 4, MAX_DISTANCE), // going for single Arduino pin
+  NewPing( 7, 7, MAX_DISTANCE), // as per https://code.google.com/p/arduino-new-ping/wiki/NewPing_Single_Pin_Sketch
+  NewPing( 8, 8, MAX_DISTANCE)
 };
 
 void echoCheck() { // If ping received, set the sensor distance to array.
@@ -79,10 +80,16 @@ void gyroOffsets() {
   mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
 }
 
+float rad2deg(float input) {
+  return input * 180 / M_PI;
+//  return input;
+}
+
+
 void setup() {
 
   //TODO should we REALLY need that much checking for I2C devices???
-  
+
   Serial.begin(115200);
 
   // Distance sensor setup
@@ -179,8 +186,8 @@ void loop() {
     fifoCount -= packetSize;
 
     // display Euler angles in degrees
-    //mpu.dmpGetQuaternion(&q, fifoBuffer);
-    //mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
   }
@@ -202,7 +209,7 @@ void loop() {
     heading -= 2 * PI;
 
   // Convert radians to degrees for readability.
-  float headingDegrees = heading * 180 / M_PI;
+  headingDegrees = rad2deg(heading);
 
   // next code block will send the whole data packet as one to Raspi2 inner serial port
   // this will be the whole telemetry sensory thing
@@ -212,11 +219,12 @@ void loop() {
       Serial.print(sonar_Median[i].getMedian());
       Serial.print("|");
     }
-    Serial.print(ypr[0] * 180 / M_PI);
+    Serial.print(rad2deg(ypr[0]));
     Serial.print("|");
-    Serial.print(ypr[1] * 180 / M_PI);
+    Serial.print(rad2deg(ypr[1]));
     Serial.print("|");
-    Serial.print(ypr[2] * 180 / M_PI);
+    Serial.print(rad2deg(ypr[2]));
+
     Serial.print("|");
     Serial.println(headingDegrees);
 
