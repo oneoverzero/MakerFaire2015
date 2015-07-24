@@ -82,7 +82,7 @@ void gyroOffsets() {
 
 float rad2deg(float input) {
   return input * 180 / M_PI;
-//  return input;
+  //return input;
 }
 
 
@@ -90,7 +90,7 @@ void setup() {
 
   //TODO should we REALLY need that much checking for I2C devices???
 
-  Serial.begin(115200);
+  Serial.begin(57600);
 
   // Distance sensor setup
   pingTimer[0] = millis() + 75;           // First ping starts at 75ms, gives time for the Arduino to chill before starting.
@@ -214,7 +214,7 @@ void loop() {
   // next code block will send the whole data packet as one to Raspi2 inner serial port
   // this will be the whole telemetry sensory thing
   if (millis() >= nextOutput) {         // Is it time?
-
+    Serial.print("BEG|");
     for (uint8_t i = 0; i < SONAR_NUM; i++) {
       Serial.print(sonar_Median[i].getMedian());
       Serial.print("|");
@@ -226,7 +226,8 @@ void loop() {
     Serial.print(rad2deg(ypr[2]));
 
     Serial.print("|");
-    Serial.println(headingDegrees);
+    Serial.print(headingDegrees);
+    Serial.println("|END");
 
     nextOutput = millis() + 250;
   }
