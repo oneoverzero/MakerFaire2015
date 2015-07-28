@@ -13,6 +13,7 @@ serialBaud1 = 19200
 serialPort2 = "/dev/ttyUSB0"
 serialBaud2 = 19200 
 
-
 logging.basicConfig(level=logging.DEBUG,format='(%(threadName)-10s) %(message)s',)
+
+
 

@@ -1,7 +1,7 @@
 # Serial1 Class
 from threading import Thread
 from vars import *
-import paho.mqtt.publish as paho
+import paho.mqtt.publish as mqttp
 
 class Serial1(Thread):
 
@@ -28,12 +28,20 @@ class Serial1(Thread):
           return buf
 
   def run(self):
-    self.port = serial.Serial(serialPort1, serialBaud1)
-    logging.debug('starting')
+    try:
+      self.port = serial.Serial(serialPort1, serialBaud1)
+      logging.debug('starting')
+    except:
+      pass  
+      
     while True:
-      data = self.readline()
-      logging.debug(data)
-      paho.single("rover/telemetry",data,hostname=mqttServer)
+      try:
+        data = self.readline()
+        logging.debug(data)
+        mqttp.single("rover/telemetry",data,hostname=mqttServer)
+      except:
+        pass
+        
       if not self.running:
         break
         
