@@ -6,6 +6,41 @@
 #include "Adafruit_Sensor.h"
 #include <Adafruit_HMC5883_U.h>
 
+/*
+
+Pinout das ligações do Arduino1
+Arduino Redboard clone, Lisbom Mini Maker Faire edition
+
+I2C:
+A4
+A5
+2 (INT0) para o Interrupt do MPU6050
+
+BATTERY monitor:
+A0
+A1
+
+Distance sensors:
+4
+7
+8
+
+Sobram os pinos:
+
+11
+A3
+A4
+3
+12
+13
+5
+6
+9
+10
+
+ */
+
+
 #define SONAR_NUM      3 // Number or sensors.
 #define MAX_DISTANCE  40 // Maximum distance (in cm) to ping.
 #define PING_INTERVAL 33 // Milliseconds between sensor pings (29ms is about the min to avoid cross-sensor echo).

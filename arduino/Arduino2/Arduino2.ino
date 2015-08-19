@@ -1,23 +1,62 @@
 #include <LMotorController.h>
 #include <VarSpeedServo.h>
 
+/*
+// TODO GET SOFT PWM
+// https://code.google.com/p/rogue-code/wiki/SoftPWMLibraryDocumentation
+Pinout das ligacoes do Arduino2
+Leonardo clone, Arduino Pro Micro
+
+Motor controllers:
+
+LEFT
+direction in + /in
+A0
+A1
+enable (PWM)
+10
+
+RIGHT
+direction in + /in
+A2
+A3
+enable (PWM)
+9
+
+Camera turret: (PWM)
+3
+
+Wheel servos: (PWM)
+5
+6
+
+Sobram os pinos :
+
+0 1 2 4 7 8
+14 15 16
+
+*/
+
+
 /* -----------------------------------------------------------------------------------------------------------*/
 // Hardware control thing
 
 // motor control pins
-int ENA = 3;
-int IN1 = 4;
-int IN2 = 8;
-int IN3 = 5;
-int IN4 = 7;
-int ENB = 6;
+int ENA = 10;
+int IN1 = A0;
+int IN2 = A1;
+int IN3 = 9;
+int IN4 = A2;
+int ENB = A3;
 LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
 
 VarSpeedServo topLeft;    // also same as bottomright
 VarSpeedServo topRight;   // also same as bottomleft
+VarSpeedServo turret;     // servo for camera turret horizontal movement
 
-const int servoTL = 9;  // the digital pin used for the servo
-const int servoTR = 9;  // the digital pin used for the servo
+const int servoTL = 9;   // the digital pin used for the servo
+const int servoTR = 10;  // the digital pin used for the servo
+const int turretP = 6;   // the digital pin used for the servo
 
 
 /* -----------------------------------------------------------------------------------------------------------*/
@@ -71,6 +110,7 @@ const int servoTR = 9;  // the digital pin used for the servo
 #define listSize 15
 int cmdList[listSize]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int nextCommand        = 0;
+int cmdPointer         = 0;
 int roverSpeed         = 102; // start it of with 40% power
 int isRoverMoving      = 0;   // rover is NOT moving
 
@@ -78,7 +118,8 @@ int isRoverMoving      = 0;   // rover is NOT moving
 // loop consts
 #define serialMilliesDelay    750
 #define commandMilliesDelay   500
-
+#define roverMoveMillies     2000
+#define roverRotateMillies   2000
 
 // loop vars
 unsigned long nextOutput = 0;       // when next update should occour
@@ -133,10 +174,26 @@ void readSerialLine() {
         for ( x = 3; x < inData.length() - 3; x++) {
           cmdList[x - 3] = inData.charAt(x) - '0';
         }
-        nextCommand = cmdList[0];
+        cmdPointer = -1;
+        getNextCommand();
+        // get back to rpi2 and say we've parsed this command!
+        // TODO
+      }
+      if (inData.startsWith("COL") && inData.endsWith("LOC")) {
+        // collision warning
+        int fwdleft  = inData.charAt(3) - '0';
+        int fwdright = inData.charAt(4) - '0';
+        int backward = inData.charAt(5) - '0';
+
+        // TODO invalidate current command by killing millies
+        // take evasive action with a RED LED
+
+
+        // get back to rpi2 and say we've parsed this command!
+        // TODO
       }
       // clear received buffer
-      inData = ""; 
+      inData = "";
     }
   }
 }
@@ -149,6 +206,44 @@ void setSerialMillies() {
 // set next milles commmand processing
 void setCommandMillies() {
   commandMillies = millis() + commandMilliesDelay;
+}
+
+// set LED command color
+void setLEDCommandColor(int command) {
+  // TODO figure out how to use those colors
+
+  /*
+
+  #define TONES 8
+  int RGBColors[TONES][3] = {
+  {255, 0, 0}, // Red
+  {0, 255, 0}, // Green
+  {0, 0, 255}, //Blue
+  {255, 255, 0}, // Yellow
+  {255, 255, 255}, // White
+  {128, 0, 255}, // Purple
+  {0, 255, 255}, // Cyan
+  {237, 120, 6} // Orange
+  };
+  void setColor (byte red, byte green, byte blue) {
+  // Common Cathode: 255-value
+   analogWrite(redPin, 255 - red);
+   analogWrite(bluePin, 255 - blue);
+   analogWrite(greenPin, 255 - green);
+  }
+
+  void setColorIndex(byte index) {
+   setColor(RGBColors[index][0], RGBColors[index][1], RGBColors[index][2]);
+  }
+
+  */
+}
+
+// get next command from queue
+void getNextCommand() {
+  //
+  cmdPointer++;
+  nextCommand = cmdList[cmdPointer];
 }
 
 
@@ -174,6 +269,16 @@ void setup() {
   // initialize servos
   topLeft.attach(servoTL);
   topRight.attach(servoTR);
+  turret.attach(turretP);
+  // TODO setup straigt servo positions
+  // depends on hardware setup
+
+  // turn off LED
+  setLEDCommandColor(0);
+
+  // set command pointer to 0
+  cmdPointer = -1;
+  nextCommand = 0;
 
 }
 
@@ -185,10 +290,10 @@ void loop() {
   if (millis() >= serialMillies) {
     if (Serial.available() > 0) {
       readSerialLine();
+      // wait for next serial port processing
       setSerialMillies();
     }
   }
-
 
   // process next command thing
   if (millis() >= nextOutput) {
@@ -196,18 +301,95 @@ void loop() {
     switch (nextCommand) {
       case 0:
         DEBUG_PRINTLN("NOP");
+        // rover is NOT moving, stop both motors
+        isRoverMoving = 0;
+        motorController.stopMoving();
         break;
+
       case 1:
         DEBUG_PRINTLN("STP");
+        // rover is NOT moving, stop both motors
+        isRoverMoving = 0;
+        motorController.stopMoving();
         break;
+
       case 2:
         DEBUG_PRINTLN("FWD");
+        // only run this bit if not moving
+        if (isRoverMoving == 0) {
+          // let us move for these millies
+          movingMillies = millis() + roverMoveMillies;
+          // light up RGB dome with current command
+          setLEDCommandColor(nextCommand);
+
+          // send actual movement command to motors
+          // motorcontroller.move(x,y);
+
+          // setup movement flag
+          isRoverMoving = 1;
+        }
         break;
+
       case 3:
         DEBUG_PRINTLN("BCK");
+        // only run this bit is not moving
+        if (isRoverMoving == 0) {
+          // let us move for these millies
+          movingMillies = millis() + roverMoveMillies;
+          // light up RGB dome with current command
+          setLEDCommandColor(nextCommand);
+
+          // send actual movement command to motors
+          // motorcontroller.move(x,y);
+
+          // setup movement flag
+          isRoverMoving = 1;
+        }
         break;
+
+      case 4:
+        DEBUG_PRINTLN("ROL");
+        // only run this bit is not moving
+        if (isRoverMoving == 0) {
+          // let us move for these millies
+          movingMillies = millis() + roverMoveMillies;
+          // light up RGB dome with current command
+          setLEDCommandColor(nextCommand);
+
+          // send actual movement command to motors
+          // motorcontroller.turnLeft(x,y);
+
+          // setup movement flag
+          isRoverMoving = 1;
+        }
+        break;
+
+      case 5:
+        DEBUG_PRINTLN("ROR");
+        // only run this bit is not moving
+        if (isRoverMoving == 0) {
+          // let us move for these millies
+          movingMillies = millis() + roverMoveMillies;
+          // light up RGB dome with current command
+          setLEDCommandColor(nextCommand);
+
+          // send actual movement command to motors
+          // motorcontroller.turnRight(x,y);
+
+          // setup movement flag
+          isRoverMoving = 1;
+        }
+        break;
+
+
     }
 
+
+
+    if (isRoverMoving && millis() >= movingMillies) {
+      // this command time is done, get next command
+
+    }
 
 
 
@@ -220,3 +402,4 @@ void loop() {
     nextOutput = millis() + commandMilliesDelay;
   }
 }
+
