@@ -1,0 +1,10 @@
+http://oliversmith.io/technology/2010/08/15/first-steps-using-python-and-mqtt/
+
+https://sakshambhatla.wordpress.com/2014/08/11/simple-mqtt-broker-and-client-in-python/
+
+http://jpmens.net/2013/02/25/lots-of-messages-mqtt-pub-sub-and-the-mosquitto-broker/
+
+https://github.com/mqtt/mqtt.github.io/wiki
+
+https://www.raspberrypi.org/learning/python-picamera-setup/worksheet.md
+
