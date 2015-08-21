@@ -108,7 +108,7 @@ const int turretP = 6;   // the digital pin used for the servo
 
 // command list
 #define listSize 15
-int cmdList[listSize]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // the list
+int cmdList[listSize]; // the list
 int currentCommand     = 0;   // active command being executed (check also is we're processingCommands)
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
@@ -118,6 +118,7 @@ int isRoverMoving      = 0;   // rover is NOT moving
 
 /* -----------------------------------------------------------------------------------------------------------*/
 // loop consts
+// TODO: JA todos os defines podem ser const int .... que não faz diferença no codigo.
 #define serialMilliesDelay    750   // defines for delays for next loop execution
 #define commandMilliesDelay   500
 #define roverMoveMillies     2000
@@ -149,7 +150,7 @@ unsigned long commandMillies = 0;   // move rover for these millies
 
 // clear command list
 void resetCmdList() {
-  for (int x = 0; x <= listSize; x++) {
+  for (int x = 0; x < listSize; x++) {
     cmdList[x] = 0;
   }
 }
@@ -201,7 +202,7 @@ void readSerialLine() {
         motorController.stopMoving();
 
         // take evasive action with a RED LED
-
+                     
 
 
         // get back to rpi2 and say we've parsed this command!
@@ -258,6 +259,7 @@ void setLEDCommandColor(int command) {
 // get next command from queue
 void getNextCommand() {
   //
+    // TODO: JA O incremento não devia ser depois de obteres o comando ?
   cmdPointer++;
   currentCommand = cmdList[cmdPointer];
 }
@@ -293,6 +295,7 @@ void setup() {
   setLEDCommandColor(0);
 
   // set command pointer to 0
+  // TODO: JA -1 ? ou será em 0 ?
   cmdPointer = -1;
   currentCommand = 0;
 
@@ -317,9 +320,9 @@ void loop() {
     switch (currentCommand) {
       case 0:
         DEBUG_PRINTLN("NOP");
-        // rover is NOT moving, stop both motors
-        isRoverMoving = 0;
-        motorController.stopMoving();
+        // TODO turn off LED
+        setLEDCommandColor(currentCommand);
+
         break;
 
       case 1:
@@ -336,6 +339,7 @@ void loop() {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
           // light up RGB dome with current command
+          // TODO: JA Isto poderia ser posto antes do switch(currentCommand)
           setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
