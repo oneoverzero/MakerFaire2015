@@ -108,15 +108,17 @@ const int turretP = 6;   // the digital pin used for the servo
 
 // command list
 #define listSize 15
-int cmdList[listSize]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-int nextCommand        = 0;
-int cmdPointer         = 0;
+int cmdList[listSize]  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // the list
+int currentCommand     = 0;   // active command being executed (check also is we're processingCommands)
+int numCommand         = 0;   // command count received
+int cmdPointer         = 0;   // helper var for current command in list
+int processingCommands = 0;   // flag for helping us know if we're running or stopped
 int roverSpeed         = 102; // start it of with 40% power
 int isRoverMoving      = 0;   // rover is NOT moving
 
 /* -----------------------------------------------------------------------------------------------------------*/
 // loop consts
-#define serialMilliesDelay    750
+#define serialMilliesDelay    750   // defines for delays for next loop execution
 #define commandMilliesDelay   500
 #define roverMoveMillies     2000
 #define roverRotateMillies   2000
@@ -145,15 +147,17 @@ unsigned long commandMillies = 0;   // move rover for these millies
 
 /* -----------------------------------------------------------------------------------------------------------*/
 
+// clear command list
 void resetCmdList() {
   for (int x = 0; x <= listSize; x++) {
     cmdList[x] = 0;
   }
 }
 
+// process whatever came through serial
 void readSerialLine() {
   String inData;
-  int x, y;
+  int x;
 
   while (Serial.available() > 0)
   {
@@ -173,24 +177,36 @@ void readSerialLine() {
         // copy all commands from within the string
         for ( x = 3; x < inData.length() - 3; x++) {
           cmdList[x - 3] = inData.charAt(x) - '0';
+          numCommand++;
         }
         cmdPointer = -1;
         getNextCommand();
         // get back to rpi2 and say we've parsed this command!
         // TODO
+        // Serial.print('GOTMIS');
       }
+      // Process inData
+      // COL000LOC
       if (inData.startsWith("COL") && inData.endsWith("LOC")) {
         // collision warning
         int fwdleft  = inData.charAt(3) - '0';
         int fwdright = inData.charAt(4) - '0';
         int backward = inData.charAt(5) - '0';
 
-        // TODO invalidate current command by killing millies
+        // invalidate current command by killing millies
+        movingMillies = millis();
+
+        // stop rover
+        isRoverMoving = 0;
+        motorController.stopMoving();
+
         // take evasive action with a RED LED
+
 
 
         // get back to rpi2 and say we've parsed this command!
         // TODO
+        // Serial.print('GOTCOL');
       }
       // clear received buffer
       inData = "";
@@ -243,7 +259,7 @@ void setLEDCommandColor(int command) {
 void getNextCommand() {
   //
   cmdPointer++;
-  nextCommand = cmdList[cmdPointer];
+  currentCommand = cmdList[cmdPointer];
 }
 
 
@@ -278,7 +294,7 @@ void setup() {
 
   // set command pointer to 0
   cmdPointer = -1;
-  nextCommand = 0;
+  currentCommand = 0;
 
 }
 
@@ -298,7 +314,7 @@ void loop() {
   // process next command thing
   if (millis() >= nextOutput) {
 
-    switch (nextCommand) {
+    switch (currentCommand) {
       case 0:
         DEBUG_PRINTLN("NOP");
         // rover is NOT moving, stop both motors
@@ -320,7 +336,7 @@ void loop() {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
           // light up RGB dome with current command
-          setLEDCommandColor(nextCommand);
+          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -337,7 +353,7 @@ void loop() {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
           // light up RGB dome with current command
-          setLEDCommandColor(nextCommand);
+          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -354,7 +370,7 @@ void loop() {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
           // light up RGB dome with current command
-          setLEDCommandColor(nextCommand);
+          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.turnLeft(x,y);
@@ -371,7 +387,7 @@ void loop() {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
           // light up RGB dome with current command
-          setLEDCommandColor(nextCommand);
+          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.turnRight(x,y);
@@ -386,20 +402,14 @@ void loop() {
 
 
 
-    if (isRoverMoving && millis() >= movingMillies) {
-      // this command time is done, get next command
 
-    }
-
-
-
-    // debug commandList
-    for (int x = 0; x <= listSize; x++) {
-      DEBUG_PRINT(cmdList[x]);
-    }
-    DEBUG_PRINTLN("");
 
     nextOutput = millis() + commandMilliesDelay;
+  }
+
+  if (isRoverMoving && millis() >= movingMillies) {
+    // this command time is done, get next command
+
   }
 }
 
