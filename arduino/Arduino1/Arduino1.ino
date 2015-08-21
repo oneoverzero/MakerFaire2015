@@ -133,6 +133,7 @@ void setup() {
     pingTimer[i] = pingTimer[i - 1] + PING_INTERVAL;
 
   // Clear RA objects
+  // TODO: JA Verificar se não tens que chamar o clear a partir do i=0 ?
   for (uint8_t i = 1; i < SONAR_NUM; i++) // Set the starting time for each sensor.
     sonar_Median[i].clear();
 
@@ -167,6 +168,7 @@ void setup() {
   {
     /* There was a problem detecting the HMC5883 ... check your connections */
     Serial.println("Ooops, no HMC5883 detected ... Check your wiring!");
+    // TODO: JA Eu não colocava ciclos infinidos. Por e simplemente desligada o codigo que trata disto.
     while (1);
   }
 
