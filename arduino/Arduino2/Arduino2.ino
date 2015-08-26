@@ -109,7 +109,7 @@ const int turretP = 6;   // the digital pin used for the servo
 // command list
 #define listSize 15
 char cmdList[listSize]; // the list
-char currentCommand    = "";   // active command being executed (check also is we're processingCommands)
+char currentCommand    = "0";   // active command being executed (check also if we're processingCommands)
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
 int processingCommands = 0;   // flag for helping us know if we're running or stopped
@@ -182,8 +182,7 @@ void readSerialLine() {
         cmdPointer = 0;
         getNextCommand();
         // get back to rpi2 and say we've parsed this command!
-        // TODO
-        // Serial.print('GOTMIS');
+        Serial.print('GOTMIS');
       }
       // Process inData
       // COL000LOC
@@ -193,9 +192,6 @@ void readSerialLine() {
         int fwdright = inData.charAt(4);
         int backward = inData.charAt(5);
 
-        // invalidate current command by killing millies
-        movingMillies = millis();
-
         // stop rover
         isRoverMoving = 0;
         motorController.stopMoving();
@@ -203,16 +199,15 @@ void readSerialLine() {
         // take evasive action with a RED LED
         //setLEDCommandColor(whatever is vermelho) 
         if (fwdleft == "1"){
-           currentCommand = "5"; // ROR
+           currentCommand = "5"; // issue ROR
         } else if (fwdright == "1"){
-           currentCommand = "4"; // ROL
+           currentCommand = "4"; // issue ROL
         } else if (backward == "1"){
-           currentCommand = "3"; // BCK
+           currentCommand = "3"; // issue BCK
         } 
 
         // get back to rpi2 and say we've parsed this command!
-        // TODO
-        // Serial.print('GOTCOL');
+        Serial.print('GOTCOL');
       }
       // clear received buffer
       inData = "";
