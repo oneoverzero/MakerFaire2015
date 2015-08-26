@@ -201,8 +201,14 @@ void readSerialLine() {
         motorController.stopMoving();
 
         // take evasive action with a RED LED
-        //setLEDCommandColor(whatever is vermelho)             
-
+        //setLEDCommandColor(whatever is vermelho) 
+        if (fwdleft == "1"){
+           currentCommand = "5"; // ROR
+        } else if (fwdright == "1"){
+           currentCommand = "4"; // ROL
+        } else if (backward == "1"){
+           currentCommand = "3"; // BCK
+        } 
 
         // get back to rpi2 and say we've parsed this command!
         // TODO
@@ -222,6 +228,11 @@ void setSerialMillies() {
 // set next milles commmand processing
 void setCommandMillies() {
   commandMillies = millis() + commandMilliesDelay;
+}
+
+// set rover miving millies
+void setRoverMillies() {
+  movingMillies = millis() + roverMoveMillies;
 }
 
 // set LED command color
@@ -322,6 +333,12 @@ void loop() {
 
     // light'em up
     setLEDCommandColor(currentCommand);
+
+    // let us move for these millies
+    // can and WILL be cancelled with NOP, STP and others
+    setRoverMillies();
+    
+    // process currentCommand
     switch (currentCommand) {
       case "0":
         DEBUG_PRINTLN("NOP");
@@ -338,8 +355,6 @@ void loop() {
         DEBUG_PRINTLN("FWD");
         // only run this bit if not moving
         if (isRoverMoving == 0) {
-          // let us move for these millies
-          movingMillies = millis() + roverMoveMillies;
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -354,7 +369,6 @@ void loop() {
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
-          movingMillies = millis() + roverMoveMillies;
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -369,7 +383,6 @@ void loop() {
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
-          movingMillies = millis() + roverMoveMillies;
 
           // send actual movement command to motors
           // motorcontroller.turnLeft(x,y);
@@ -384,7 +397,6 @@ void loop() {
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
-          movingMillies = millis() + roverMoveMillies;
 
           // send actual movement command to motors
           // motorcontroller.turnRight(x,y);
