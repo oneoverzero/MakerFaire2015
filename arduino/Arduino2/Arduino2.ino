@@ -179,7 +179,7 @@ void readSerialLine() {
           cmdList[x - 3] = inData.charAt(x);
           numCommand++;
         }
-        cmdPointer = -1;
+        cmdPointer = 0;
         getNextCommand();
         // get back to rpi2 and say we've parsed this command!
         // TODO
@@ -258,9 +258,15 @@ void setLEDCommandColor(int command) {
 // get next command from queue
 void getNextCommand() {
   //
-    // TODO: JA O incremento não devia ser depois de obteres o comando ?
-  cmdPointer++;
   currentCommand = cmdList[cmdPointer];
+  cmdPointer++;
+  // if we have reached the last command on the list
+  // just sit there, doing NOP and clear command list
+  if (cmdPointer > numCommand){
+    currentCommand = 0;
+    numCommand = 0;
+    resetCmdList();
+  }
 }
 
 
@@ -294,9 +300,9 @@ void setup() {
   setLEDCommandColor(0);
 
   // set command pointer to 0
-  // TODO: JA -1 ? ou será em 0 ?
-  cmdPointer = -1;
+  cmdPointer = 0;
   currentCommand = 0;
+  numCommand = 0;
 
 }
 
@@ -316,11 +322,13 @@ void loop() {
   // process next command thing
   if (millis() >= nextOutput) {
 
+    // light'em up
+    setLEDCommandColor(currentCommand);
     switch (currentCommand) {
       case "0":
         DEBUG_PRINTLN("NOP");
         // TODO turn off LED
-        setLEDCommandColor(currentCommand);
+        setLEDCommandColor("0");
 
         break;
 
@@ -338,8 +346,6 @@ void loop() {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
           // light up RGB dome with current command
-          // TODO: JA Isto poderia ser posto antes do switch(currentCommand)
-          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
