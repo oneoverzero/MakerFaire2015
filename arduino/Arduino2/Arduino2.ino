@@ -118,11 +118,10 @@ int isRoverMoving      = 0;   // rover is NOT moving
 
 /* -----------------------------------------------------------------------------------------------------------*/
 // loop consts
-// TODO: JA todos os defines podem ser const int .... que não faz diferença no codigo.
-#define serialMilliesDelay    750   // defines for delays for next loop execution
-#define commandMilliesDelay   500
-#define roverMoveMillies     2000
-#define roverRotateMillies   2000
+const int serialMilliesDelay  =  750; // defines for delays for next loop execution
+const int commandMilliesDelay =  500;
+const int roverMoveMillies    = 2000;
+const int roverRotateMillies  = 2000;
 
 // loop vars
 unsigned long nextOutput = 0;       // when next update should occour
