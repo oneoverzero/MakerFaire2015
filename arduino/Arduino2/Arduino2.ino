@@ -107,9 +107,9 @@ const int turretP = 6;   // the digital pin used for the servo
  */
 
 // command list
-#define listSize 15
-char cmdList[listSize]; // the list
-char currentCommand    = "0";   // active command being executed (check also if we're processingCommands)
+const int listSize = 15;
+char cmdList[listSize]= {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'};; // the list
+char currentCommand;   // active command being executed (check also is we're processingCommands)
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
 int processingCommands = 0;   // flag for helping us know if we're running or stopped
@@ -150,7 +150,7 @@ unsigned long commandMillies = 0;   // move rover for these millies
 // clear command list
 void resetCmdList() {
   for (int x = 0; x < listSize; x++) {
-    cmdList[x] = "0";
+    cmdList[x] = '0';
   }
 }
 
@@ -174,40 +174,48 @@ void readSerialLine() {
         // clear previous list
         resetCmdList();
 
+        numCommand = 0;
+
         // copy all commands from within the string
         for ( x = 3; x < inData.length() - 3; x++) {
-          cmdList[x - 3] = inData.charAt(x);
+          cmdList[numCommand] = inData.charAt(x);
           numCommand++;
         }
         cmdPointer = 0;
         getNextCommand();
         // get back to rpi2 and say we've parsed this command!
-        Serial.print('GOTMIS');
+        // TODO
+        // Serial.print('GOTMIS');
       }
       // Process inData
       // COL000LOC
       if (inData.startsWith("COL") && inData.endsWith("LOC")) {
         // collision warning
-        int fwdleft  = inData.charAt(3);
-        int fwdright = inData.charAt(4);
-        int backward = inData.charAt(5);
+        char fwdleft  = inData.charAt(3);
+        char fwdright = inData.charAt(4);
+        char backward = inData.charAt(5);
+
+        // invarlidate current command by killing millies
+        movingMillies = millis();
 
         // stop rover
         isRoverMoving = 0;
         motorController.stopMoving();
 
         // take evasive action with a RED LED
-        //setLEDCommandColor(whatever is vermelho) 
-        if (fwdleft == "1"){
-           currentCommand = "5"; // issue ROR
-        } else if (fwdright == "1"){
-           currentCommand = "4"; // issue ROL
-        } else if (backward == "1"){
-           currentCommand = "3"; // issue BCK
-        } 
+        //setLEDCommandColor(whatever is vermelho)
+        if (fwdleft == '1') {
+          currentCommand = '5'; // ROR
+        } else if (fwdright == '1') {
+          currentCommand = '4'; // ROL
+        }
+        if (backward == '1') {
+          currentCommand = '3'; // BCK
+        }
 
         // get back to rpi2 and say we've parsed this command!
-        Serial.print('GOTCOL');
+        // TODO
+        // Serial.print('GOTCOL');
       }
       // clear received buffer
       inData = "";
@@ -267,7 +275,7 @@ void getNextCommand() {
   cmdPointer++;
   // if we have reached the last command on the list
   // just sit there, doing NOP and clear command list
-  if (cmdPointer > numCommand){
+  if (cmdPointer > numCommand) {
     currentCommand = 0;
     numCommand = 0;
     resetCmdList();
@@ -297,7 +305,7 @@ void setup() {
   topLeft.attach(servoTL);
   topRight.attach(servoTR);
   turret.attach(turretP);
-  
+
   // TODO setup straigt servo positions
   // depends on hardware setup
 
@@ -332,21 +340,21 @@ void loop() {
     // let us move for these millies
     // can and WILL be cancelled with NOP, STP and others
     setRoverMillies();
-    
+
     // process currentCommand
     switch (currentCommand) {
-      case "0":
+      case '0':
         DEBUG_PRINTLN("NOP");
         break;
 
-      case "1":
+      case '1':
         DEBUG_PRINTLN("STP");
         // rover is NOT moving, stop both motors
         isRoverMoving = 0;
         motorController.stopMoving();
         break;
 
-      case "2":
+      case '2':
         DEBUG_PRINTLN("FWD");
         // only run this bit if not moving
         if (isRoverMoving == 0) {
@@ -359,7 +367,7 @@ void loop() {
         }
         break;
 
-      case "3":
+      case '3':
         DEBUG_PRINTLN("BCK");
         // only run this bit is not moving
         if (isRoverMoving == 0) {
@@ -373,7 +381,7 @@ void loop() {
         }
         break;
 
-      case "4":
+      case '4':
         DEBUG_PRINTLN("ROL");
         // only run this bit is not moving
         if (isRoverMoving == 0) {
@@ -387,7 +395,7 @@ void loop() {
         }
         break;
 
-      case "5":
+      case '5':
         DEBUG_PRINTLN("ROR");
         // only run this bit is not moving
         if (isRoverMoving == 0) {
@@ -410,7 +418,6 @@ void loop() {
   if (isRoverMoving && millis() >= movingMillies) {
     // this command time is done, get next command
     getNextCommand();
-
   }
 }
 
