@@ -302,6 +302,7 @@ void setup() {
   topLeft.attach(servoTL);
   topRight.attach(servoTR);
   turret.attach(turretP);
+  
   // TODO setup straigt servo positions
   // depends on hardware setup
 
@@ -316,7 +317,6 @@ void setup() {
 }
 
 /* -----------------------------------------------------------------------------------------------------------*/
-
 void loop() {
 
   // check serial port each serialMillies
