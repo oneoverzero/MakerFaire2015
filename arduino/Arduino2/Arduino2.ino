@@ -201,7 +201,7 @@ void readSerialLine() {
         motorController.stopMoving();
 
         // take evasive action with a RED LED
-                     
+        //setLEDCommandColor(whatever is vermelho)             
 
 
         // get back to rpi2 and say we've parsed this command!
@@ -229,7 +229,6 @@ void setLEDCommandColor(int command) {
   // TODO figure out how to use those colors
 
   /*
-
   #define TONES 8
   int RGBColors[TONES][3] = {
   {255, 0, 0}, // Red
@@ -268,7 +267,6 @@ void getNextCommand() {
     resetCmdList();
   }
 }
-
 
 /* -----------------------------------------------------------------------------------------------------------*/
 
@@ -327,9 +325,6 @@ void loop() {
     switch (currentCommand) {
       case "0":
         DEBUG_PRINTLN("NOP");
-        // TODO turn off LED
-        setLEDCommandColor("0");
-
         break;
 
       case "1":
@@ -345,7 +340,6 @@ void loop() {
         if (isRoverMoving == 0) {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
-          // light up RGB dome with current command
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -361,8 +355,6 @@ void loop() {
         if (isRoverMoving == 0) {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
-          // light up RGB dome with current command
-          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -378,8 +370,6 @@ void loop() {
         if (isRoverMoving == 0) {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
-          // light up RGB dome with current command
-          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.turnLeft(x,y);
@@ -395,8 +385,6 @@ void loop() {
         if (isRoverMoving == 0) {
           // let us move for these millies
           movingMillies = millis() + roverMoveMillies;
-          // light up RGB dome with current command
-          setLEDCommandColor(currentCommand);
 
           // send actual movement command to motors
           // motorcontroller.turnRight(x,y);
@@ -406,18 +394,15 @@ void loop() {
         }
         break;
 
-
     }
-
-
-
-
 
     nextOutput = millis() + commandMilliesDelay;
   }
 
+  // is it time to process next command?
   if (isRoverMoving && millis() >= movingMillies) {
     // this command time is done, get next command
+    getNextCommand();
 
   }
 }
