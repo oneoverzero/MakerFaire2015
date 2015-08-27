@@ -40,7 +40,7 @@ A4
 
  */
 
-
+/* -----------------------------------------------------------------------------------------------------------*/
 #define SONAR_NUM      3 // Number or sensors.
 #define MAX_DISTANCE  40 // Maximum distance (in cm) to ping.
 #define PING_INTERVAL 33 // Milliseconds between sensor pings (29ms is about the min to avoid cross-sensor echo).
@@ -51,7 +51,7 @@ unsigned int cm[SONAR_NUM];         // Where the ping distances are stored.
 uint8_t currentSensor = 0;          // Keeps track of which sensor is active.
 
 // IMU stuff
-MPU6050 mpu; // <-- use for AD0 high
+MPU6050 mpu;
 
 // MPU control/status vars
 uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
@@ -61,11 +61,7 @@ uint8_t fifoBuffer[64]; // FIFO storage buffer
 
 // orientation/motion vars
 Quaternion q;           // [w, x, y, z]         quaternion container
-//VectorInt16 aa;         // [x, y, z]            accel sensor measurements
-//VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
-//VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
-//float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
 // mag stuff
@@ -78,7 +74,6 @@ unsigned long nextOutput = 0;       // when next update should occour
 unsigned long loopMillies = 0;
 
 // INTERRUPT DETECTION ROUTINE
-
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 void dmpDataReady() {
   mpuInterrupt = true;
@@ -117,19 +112,19 @@ void gyroOffsets() {
 
 float rad2deg(float input) {
   return input * 180 / M_PI;
-  //return input;
 }
 
-
+/* -----------------------------------------------------------------------------------------------------------*/
 void setup() {
 
   //TODO should we REALLY need that much checking for I2C devices???
 
-  Serial.begin(57600);
+  // init serial port
+  Serial.begin(19200);
 
   // Distance sensor setup
   pingTimer[0] = millis() + 75;           // First ping starts at 75ms, gives time for the Arduino to chill before starting.
-  for (uint8_t i = 1; i < SONAR_NUM; i++) // Set the starting time for each sensor.
+  for (uint8_t i = 0; i < SONAR_NUM; i++) // Set the starting time for each sensor.
     pingTimer[i] = pingTimer[i - 1] + PING_INTERVAL;
 
   // Clear RA objects
@@ -144,8 +139,11 @@ void setup() {
   mpu.initialize();
 
   // verify connection
-  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-
+  if (mpu.testConnection()) {
+    Serial.println("MPU6050 connection successful");
+  } else {
+    Serial.println("MPU6050 connection failed");
+  }
 
   // make sure it worked (returns 0 if so)
   if (mpu.dmpInitialize() == 0) {
@@ -163,19 +161,14 @@ void setup() {
     Serial.print("DMP Initialization failed");
   }
 
-  /* Initialise the sensor */
-  if (!mag.begin())
-  {
-    /* There was a problem detecting the HMC5883 ... check your connections */
-    Serial.println("Ooops, no HMC5883 detected ... Check your wiring!");
-    // TODO: JA Eu não colocava ciclos infinidos. Por e simplemente desligada o codigo que trata disto.
-    while (1);
-  }
+  // Initialise the sensor
+  mag.begin();
 
   // next output
   nextOutput = millis() + 250;            // Let's get some samples into Average thing
 }
 
+/* -----------------------------------------------------------------------------------------------------------*/
 void loop() {
 
   // Loop through all the sensors.
@@ -269,6 +262,4 @@ void loop() {
     nextOutput = millis() + 250;
   }
 }
-
-
 
