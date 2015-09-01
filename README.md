@@ -12,5 +12,6 @@ Raspi2 provides video streams and gateway to electronics
 
 runs python scripts as both client and publisher to MQTT queues on Mission Control
 
+
 Mission Control is the main hub for all things
 
