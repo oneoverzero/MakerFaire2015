@@ -12,7 +12,7 @@
 
 
 import paho.mqtt.publish as paho
-from vars import *
+#from vars import *
 
 import socket
 import fcntl
