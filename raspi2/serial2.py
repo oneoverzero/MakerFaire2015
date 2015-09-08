@@ -27,7 +27,7 @@ class Serial2(Thread):
     if payload[:3] == 'MIS' and payload[-3:] == 'SIM':
       logging.debug('got Mission Control data -> ' + payload)
       try:
-        self.write(payload)
+        self.port.write(payload+'\n')
         logging.debug('sent to Arduino2')
       except:
         pass
