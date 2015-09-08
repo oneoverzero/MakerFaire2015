@@ -82,7 +82,7 @@ const int turretP = 6;   // the digital pin used for the servo
   C set speed 40%  102
   D set speed 60%  153
   E set speed 80%  204
-  F
+  F set speed 100% 255
   G
   H
   I
@@ -124,9 +124,7 @@ const int roverMoveMillies    = 2000;
 const int roverRotateMillies  = 2000;
 
 // loop vars
-unsigned long nextOutput = 0;       // when next update should occour
 unsigned long loopMillies = 0;
-
 unsigned long serialMillies = 0;    // read serialport each 'x' millies
 unsigned long movingMillies = 0;    // move rover for these millies
 unsigned long commandMillies = 0;   // move rover for these millies
@@ -195,7 +193,7 @@ void readSerialLine() {
         char fwdright = inData.charAt(4);
         char backward = inData.charAt(5);
 
-        // invarlidate current command by killing millies
+        // invalidate current command by killing millies
         movingMillies = millis();
 
         // stop rover
@@ -216,6 +214,32 @@ void readSerialLine() {
         // get back to rpi2 and say we've parsed this command!
         // TODO
         // Serial.print('GOTCOL');
+      }
+      // Process inData
+      // CFGABCGFC
+      if (inData.startsWith("CFG") && inData.endsWith("GFC")) {
+
+        // invalidate current command by killing millies
+        movingMillies = millis();
+
+        // stop rover
+        isRoverMoving = 0;
+        motorController.stopMoving();
+
+        // process configuration command
+/*
+        if (fwdleft == '1') {
+          currentCommand = '5'; // ROR
+        } else if (fwdright == '1') {
+          currentCommand = '4'; // ROL
+        }
+        if (backward == '1') {
+          currentCommand = '3'; // BCK
+        }
+*/
+        // get back to rpi2 and say we've parsed this command!
+        // TODO
+        // Serial.print('GOTCFG');
       }
       // clear received buffer
       inData = "";
@@ -270,7 +294,7 @@ void setLEDCommandColor(int command) {
 
 // get next command from queue
 void getNextCommand() {
-  //
+  // get next from list
   currentCommand = cmdList[cmdPointer];
   cmdPointer++;
   // if we have reached the last command on the list
@@ -293,7 +317,7 @@ void setup() {
   resetCmdList();
 
   // next output
-  nextOutput = millis() + commandMilliesDelay;
+  setCommandMillies();
   setSerialMillies();
   setCommandMillies();
 
@@ -332,14 +356,11 @@ void loop() {
   }
 
   // process next command thing
-  if (millis() >= nextOutput) {
+  if (millis() >= commandMillies) {
 
     // light'em up
     setLEDCommandColor(currentCommand);
 
-    // let us move for these millies
-    // can and WILL be cancelled with NOP, STP and others
-    setRoverMillies();
 
     // process currentCommand
     switch (currentCommand) {
@@ -358,6 +379,9 @@ void loop() {
         DEBUG_PRINTLN("FWD");
         // only run this bit if not moving
         if (isRoverMoving == 0) {
+          // let us move for these millies
+          // can and WILL be cancelled with NOP, STP and others
+          setRoverMillies();
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -372,6 +396,8 @@ void loop() {
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
+          // can and WILL be cancelled with NOP, STP and others
+          setRoverMillies();
 
           // send actual movement command to motors
           // motorcontroller.move(x,y);
@@ -386,6 +412,8 @@ void loop() {
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
+          // can and WILL be cancelled with NOP, STP and others
+          setRoverMillies();
 
           // send actual movement command to motors
           // motorcontroller.turnLeft(x,y);
@@ -400,6 +428,8 @@ void loop() {
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
+          // can and WILL be cancelled with NOP, STP and others
+          setRoverMillies();
 
           // send actual movement command to motors
           // motorcontroller.turnRight(x,y);
@@ -411,7 +441,7 @@ void loop() {
 
     }
 
-    nextOutput = millis() + commandMilliesDelay;
+    setCommandMillies();
   }
 
   // is it time to process next command?

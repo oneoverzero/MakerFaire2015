@@ -23,11 +23,14 @@ class Serial2(Thread):
 
   #On receipt of a message fill cmdList array with commands
   def on_message(self,pahoClient,obj,msg):
-    pauyload = msg.payload
+    payload = msg.payload
     if payload[:3] == 'MIS' and payload[-3:] == 'SIM':
       logging.debug('got Mission Control data -> ' + payload)
-      self.commands = payload.split('|')
-      
+      try:
+        self.write(payload)
+        logging.debug('sent to Arduino2')
+      except:
+        pass
       
   def run(self):
     logging.debug('MQTT client starting')
@@ -35,6 +38,12 @@ class Serial2(Thread):
     self.client.on_connect = self.on_connect
     self.client.on_message = self.on_message
     self.client.connect(mqttServer,1883,60)
+    try:
+      self.port = serial.Serial(serialPort2, serialBaud2)
+      logging.debug('starting')
+    except:
+      pass  
+
     while True:
       if not self.running:
         break
