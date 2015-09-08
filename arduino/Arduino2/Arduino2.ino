@@ -113,7 +113,7 @@ char currentCommand;   // active command being executed (check also is we're pro
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
 int processingCommands = 0;   // flag for helping us know if we're running or stopped
-int roverSpeed         = 102; // start it of with 40% power
+int roverSpeed         = 204; // start it of with 80% power
 int isRoverMoving      = 0;   // rover is NOT moving
 
 /* -----------------------------------------------------------------------------------------------------------*/
