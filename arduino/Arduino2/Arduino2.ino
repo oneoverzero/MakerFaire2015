@@ -45,10 +45,10 @@ Sobram os pinos :
 int ENA = 10;
 int IN1 = A0;
 int IN2 = A1;
-int IN3 = 9;
-int IN4 = A2;
-int ENB = A3;
-LMotorController motorController(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
+int IN3 = A2;
+int IN4 = A3;
+int ENB = 9;
+LMotorController motor(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
 
 VarSpeedServo topLeft;    // also same as bottomright
 VarSpeedServo topRight;   // also same as bottomleft
@@ -108,7 +108,7 @@ const int turretP = 6;   // the digital pin used for the servo
 
 // command list
 const int listSize = 15;
-char cmdList[listSize]= {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'};; // the list
+char cmdList[listSize] = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'};; // the list
 char currentCommand;   // active command being executed (check also is we're processingCommands)
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
@@ -119,31 +119,14 @@ int isRoverMoving      = 0;   // rover is NOT moving
 /* -----------------------------------------------------------------------------------------------------------*/
 // loop consts
 const int serialMilliesDelay  =  750; // defines for delays for next loop execution
-const int commandMilliesDelay =  500;
+const int commandMilliesDelay = 1000;
 const int roverMoveMillies    = 2000;
-const int roverRotateMillies  = 2000;
+const int roverRotateMillies  = 500;
 
 // loop vars
-unsigned long loopMillies = 0;
 unsigned long serialMillies = 0;    // read serialport each 'x' millies
 unsigned long movingMillies = 0;    // move rover for these millies
 unsigned long commandMillies = 0;   // move rover for these millies
-
-/* -----------------------------------------------------------------------------------------------------------*/
-// DEBUG stuff
-#define DEBUG_ME
-
-#ifdef DEBUG
-#define DEBUG_PRINT(x)    Serial.print (x)
-#define DEBUG_PRINTDEC(x) Serial.print (x, DEC)
-#define DEBUG_PRINTLN(x)  Serial.println (x)
-#else
-#define DEBUG_PRINT(x)
-#define DEBUG_PRINTDEC(x)
-#define DEBUG_PRINTLN(x)
-#endif
-
-/* -----------------------------------------------------------------------------------------------------------*/
 
 // clear command list
 void resetCmdList() {
@@ -183,7 +166,7 @@ void readSerialLine() {
         getNextCommand();
         // get back to rpi2 and say we've parsed this command!
         // TODO
-        // Serial.print('GOTMIS');
+        Serial.print("GOTMIS");
       }
       // Process inData
       // COL000LOC
@@ -198,7 +181,7 @@ void readSerialLine() {
 
         // stop rover
         isRoverMoving = 0;
-        motorController.stopMoving();
+        motor.stopMoving();
 
         // take evasive action with a RED LED
         //setLEDCommandColor(whatever is vermelho)
@@ -224,19 +207,19 @@ void readSerialLine() {
 
         // stop rover
         isRoverMoving = 0;
-        motorController.stopMoving();
+        motor.stopMoving();
 
         // process configuration command
-/*
-        if (fwdleft == '1') {
-          currentCommand = '5'; // ROR
-        } else if (fwdright == '1') {
-          currentCommand = '4'; // ROL
-        }
-        if (backward == '1') {
-          currentCommand = '3'; // BCK
-        }
-*/
+        /*
+                if (fwdleft == '1') {
+                  currentCommand = '5'; // ROR
+                } else if (fwdright == '1') {
+                  currentCommand = '4'; // ROL
+                }
+                if (backward == '1') {
+                  currentCommand = '3'; // BCK
+                }
+        */
         // get back to rpi2 and say we've parsed this command!
         // TODO
         // Serial.print('GOTCFG');
@@ -260,6 +243,11 @@ void setCommandMillies() {
 // set rover miving millies
 void setRoverMillies() {
   movingMillies = millis() + roverMoveMillies;
+}
+
+// set rover miving millies
+void setRoverRotateMillies() {
+  movingMillies = millis() + roverRotateMillies;
 }
 
 // set LED command color
@@ -319,11 +307,11 @@ void setup() {
   // next output
   setCommandMillies();
   setSerialMillies();
-  setCommandMillies();
+  setRoverMillies();
 
   // rover is NOT moving, stop both motors
   isRoverMoving = 0;
-  motorController.stopMoving();
+  motor.stopMoving();
 
   // initialize servos
   topLeft.attach(servoTL);
@@ -361,30 +349,33 @@ void loop() {
     // light'em up
     setLEDCommandColor(currentCommand);
 
+    // reset next run time
+    setCommandMillies();
 
     // process currentCommand
     switch (currentCommand) {
       case '0':
-        DEBUG_PRINTLN("NOP");
+        Serial.println("NOP");
         break;
 
       case '1':
-        DEBUG_PRINTLN("STP");
+        Serial.println("STP");
         // rover is NOT moving, stop both motors
         isRoverMoving = 0;
-        motorController.stopMoving();
+        motor.stopMoving();
         break;
 
       case '2':
-        DEBUG_PRINTLN("FWD");
+        Serial.println("FWD");
         // only run this bit if not moving
         if (isRoverMoving == 0) {
+          Serial.println("FWD, one time only");
           // let us move for these millies
           // can and WILL be cancelled with NOP, STP and others
           setRoverMillies();
 
           // send actual movement command to motors
-          // motorcontroller.move(x,y);
+          motor.move(roverSpeed);
 
           // setup movement flag
           isRoverMoving = 1;
@@ -392,15 +383,16 @@ void loop() {
         break;
 
       case '3':
-        DEBUG_PRINTLN("BCK");
+        Serial.println("BCK");
         // only run this bit is not moving
         if (isRoverMoving == 0) {
+          Serial.println("BCK, one time only");
           // let us move for these millies
           // can and WILL be cancelled with NOP, STP and others
           setRoverMillies();
 
           // send actual movement command to motors
-          // motorcontroller.move(x,y);
+          motor.move(-roverSpeed);
 
           // setup movement flag
           isRoverMoving = 1;
@@ -408,15 +400,15 @@ void loop() {
         break;
 
       case '4':
-        DEBUG_PRINTLN("ROL");
+        Serial.println("ROL");
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
           // can and WILL be cancelled with NOP, STP and others
-          setRoverMillies();
+          setRoverRotateMillies();
 
           // send actual movement command to motors
-          // motorcontroller.turnLeft(x,y);
+          motor.turnLeft(roverSpeed, true);
 
           // setup movement flag
           isRoverMoving = 1;
@@ -424,30 +416,35 @@ void loop() {
         break;
 
       case '5':
-        DEBUG_PRINTLN("ROR");
+        Serial.println("ROR");
         // only run this bit is not moving
         if (isRoverMoving == 0) {
           // let us move for these millies
           // can and WILL be cancelled with NOP, STP and others
-          setRoverMillies();
+          setRoverRotateMillies();
 
           // send actual movement command to motors
-          // motorcontroller.turnRight(x,y);
+          motor.turnRight(roverSpeed, true);
 
           // setup movement flag
           isRoverMoving = 1;
         }
         break;
+      default:
+        break;
 
     }
-
-    setCommandMillies();
   }
 
   // is it time to process next command?
   if (isRoverMoving && millis() >= movingMillies) {
     // this command time is done, get next command
     getNextCommand();
+    // clear movement flag
+    isRoverMoving = 0;
+    // stop motors between commands
+    motor.stopMoving();
   }
+
 }
 
