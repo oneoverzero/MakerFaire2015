@@ -165,7 +165,6 @@ void readSerialLine() {
         cmdPointer = 0;
         getNextCommand();
         // get back to rpi2 and say we've parsed this command!
-        // TODO
         Serial.print("GOTMIS");
       }
       // Process inData
@@ -193,10 +192,8 @@ void readSerialLine() {
         if (backward == '1') {
           currentCommand = '3'; // BCK
         }
-
         // get back to rpi2 and say we've parsed this command!
-        // TODO
-        // Serial.print('GOTCOL');
+        Serial.print('GOTCOL');
       }
       // Process inData
       // CFGABCGFC
@@ -241,7 +238,6 @@ void readSerialLine() {
             break;
         }
         // get back to rpi2 and say we've parsed this command!
-        // TODO
         Serial.print('GOTCFG');
       }
       // clear received buffer
@@ -467,6 +463,5 @@ void loop() {
     // pause for 500mS
     delay(500);
   }
-
 }
 
