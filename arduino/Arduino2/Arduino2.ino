@@ -1,5 +1,5 @@
 #include <LMotorController.h>
-#include <VarSpeedServo.h>
+//#include <VarSpeedServo.h>
 
 /*
 // TODO GET SOFT PWM
@@ -50,9 +50,9 @@ int IN4 = A3;
 int ENB = 9;
 LMotorController motor(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
 
-VarSpeedServo topLeft;    // also same as bottomright
-VarSpeedServo topRight;   // also same as bottomleft
-VarSpeedServo turret;     // servo for camera turret horizontal movement
+//VarSpeedServo topLeft;    // also same as bottomright
+//VarSpeedServo topRight;   // also same as bottomleft
+//VarSpeedServo turret;     // servo for camera turret horizontal movement
 
 const int servoTL = 9;   // the digital pin used for the servo
 const int servoTR = 10;  // the digital pin used for the servo
@@ -113,7 +113,7 @@ char currentCommand;   // active command being executed (check also is we're pro
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
 int processingCommands = 0;   // flag for helping us know if we're running or stopped
-int roverSpeed         = 204; // start it of with 80% power
+int roverSpeed         = 255; // start it of with 80% power
 int isRoverMoving      = 0;   // rover is NOT moving
 
 /* -----------------------------------------------------------------------------------------------------------*/
@@ -121,7 +121,7 @@ int isRoverMoving      = 0;   // rover is NOT moving
 const int serialMilliesDelay  =  750; // defines for delays for next loop execution
 const int commandMilliesDelay = 1000;
 const int roverMoveMillies    = 2000;
-const int roverRotateMillies  = 500;
+const int roverRotateMillies  = 1000;
 
 // loop vars
 unsigned long serialMillies = 0;    // read serialport each 'x' millies
@@ -209,20 +209,40 @@ void readSerialLine() {
         isRoverMoving = 0;
         motor.stopMoving();
 
+        char param1  = inData.charAt(3);
+
         // process configuration command
-        /*
-                if (fwdleft == '1') {
-                  currentCommand = '5'; // ROR
-                } else if (fwdright == '1') {
-                  currentCommand = '4'; // ROL
-                }
-                if (backward == '1') {
-                  currentCommand = '3'; // BCK
-                }
-        */
+
+        // process currentCommand
+        switch (param1) {
+          case 'A':
+            roverSpeed = 128;
+            Serial.println("50%");
+            break;
+          case 'B':
+            roverSpeed = 153;
+            Serial.println("60%");
+            break;
+          case 'C':
+            roverSpeed = 178;
+            Serial.println("70%");
+            break;
+          case 'D':
+            roverSpeed = 204;
+            Serial.println("80%");
+            break;
+          case 'E':
+            roverSpeed = 230;
+            Serial.println("90%");
+            break;
+          case 'F':
+            roverSpeed = 255;
+            Serial.println("100%");
+            break;
+        }
         // get back to rpi2 and say we've parsed this command!
         // TODO
-        // Serial.print('GOTCFG');
+        Serial.print('GOTCFG');
       }
       // clear received buffer
       inData = "";
@@ -314,9 +334,9 @@ void setup() {
   motor.stopMoving();
 
   // initialize servos
-  topLeft.attach(servoTL);
-  topRight.attach(servoTR);
-  turret.attach(turretP);
+  //  topLeft.attach(servoTL);
+  //  topRight.attach(servoTR);
+  //  turret.attach(turretP);
 
   // TODO setup straigt servo positions
   // depends on hardware setup
@@ -444,6 +464,8 @@ void loop() {
     isRoverMoving = 0;
     // stop motors between commands
     motor.stopMoving();
+    // pause for 500mS
+    delay(500);
   }
 
 }

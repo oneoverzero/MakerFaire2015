@@ -73,6 +73,10 @@ float headingDegrees;
 unsigned long nextOutput = 0;       // when next update should occour
 unsigned long loopMillies = 0;
 
+// battery,
+int bat1 = 0;
+int bat2 = 0;
+
 // INTERRUPT DETECTION ROUTINE
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 void dmpDataReady() {
@@ -81,14 +85,14 @@ void dmpDataReady() {
 
 // use one Running Median Object per sensor
 RunningMedian sonar_Median[SONAR_NUM] = {     // Sensor medians object array.
-  RunningMedian(10),
-  RunningMedian(10),
-  RunningMedian(10)
+  RunningMedian(3),
+  RunningMedian(3),
+  RunningMedian(3)
 };
 
 NewPing sonar[SONAR_NUM] = {    // Sensor object array.
-  NewPing( 4, 4, MAX_DISTANCE), // going for single Arduino pin
-  NewPing( 7, 7, MAX_DISTANCE), // as per https://code.google.com/p/arduino-new-ping/wiki/NewPing_Single_Pin_Sketch
+  NewPing( 7, 7, MAX_DISTANCE), // going for single Arduino pin
+  NewPing( 4, 4, MAX_DISTANCE), // as per https://code.google.com/p/arduino-new-ping/wiki/NewPing_Single_Pin_Sketch
   NewPing( 8, 8, MAX_DISTANCE)
 };
 
@@ -118,6 +122,8 @@ float rad2deg(float input) {
 void setup() {
 
   //TODO should we REALLY need that much checking for I2C devices???
+
+
 
   // init serial port
   Serial.begin(19200);
@@ -241,6 +247,10 @@ void loop() {
   // Convert radians to degrees for readability.
   headingDegrees = rad2deg(heading);
 
+  // read battery status
+  bat1 = analogRead(A0);
+  bat2 = analogRead(A1);
+
   // next code block will send the whole data packet as one to Raspi2 inner serial port
   // this will be the whole telemetry sensory thing
   if (millis() >= nextOutput) {         // Is it time?
@@ -257,6 +267,11 @@ void loop() {
 
     Serial.print("|");
     Serial.print(headingDegrees);
+    Serial.print("|");
+    Serial.print(bat1);
+    Serial.print("|");
+    Serial.print(bat2);
+
     Serial.println("|END");
 
     nextOutput = millis() + 250;
