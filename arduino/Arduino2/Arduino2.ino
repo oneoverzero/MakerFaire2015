@@ -190,7 +190,7 @@ void readSerialLine() {
           currentCommand = '4'; // ROL
         }
         if (backward == '1') {
-          currentCommand = '3'; // BCK
+          currentCommand = '2'; // FWD
         }
         // get back to rpi2 and say we've parsed this command!
         Serial.print('GOTCOL');
