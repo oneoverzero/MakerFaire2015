@@ -10,7 +10,5 @@ def get_ip_address(ifname):
   return socket.inet_ntoa(fcntl.ioctl(s.fileno(),0x8915,  # SIOCGIFADDR
     struct.pack('256s', ifname[:15]))[20:24])
 
-mqttServer = "192.168.69.3"
-
 paho.single("rover/ip",get_ip_address("wlan0"),hostname=mqttServer)
 
