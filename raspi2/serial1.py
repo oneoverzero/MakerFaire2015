@@ -27,6 +27,20 @@ class Serial1(Thread):
       if char=='\r' or char=='' and buf[:3] == 'BEG' and buf[-4:] == 'END\r':
           return buf
 
+  def find_collision(self,data):
+    part = data.split('|')
+
+    if (part[1] != "0.00" ):
+	  return "100"
+
+    if (part[2] != "0.00" ):
+	  return "010"
+
+    if (part[3] != "0.00" ):
+	  return "001"
+
+    return "000"
+
   def run(self):
     try:
       self.port = serial.Serial(serialPort1, serialBaud1)
@@ -38,6 +52,10 @@ class Serial1(Thread):
       try:
         data = self.readline()
         logging.debug(data)
+        collision = find_collision(data)
+		if (collision != "000" ):
+	      mqttp.single("rover/command","COL" + collision + "LOC",hostname=mqttServer)
+
         mqttp.single("rover/telemetry",data,hostname=mqttServer)
       except:
         pass
