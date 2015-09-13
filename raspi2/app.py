@@ -17,7 +17,7 @@ ser2 = Serial2(serialPort2, serialBaud2)
 
 while True:
 
-	time.sleep(2)
+  time.sleep(2)
 
 ser1.kill()
 ser2.kill()

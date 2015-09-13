@@ -31,6 +31,22 @@ class Serial2(Thread):
         logging.debug('sent to Arduino2')
       except:
         pass
+ 
+    if payload[:3] == 'COL' and payload[-3:] == 'LOC':
+      logging.debug('got collision data -> ' + payload)
+      try:
+        self.port.write(payload+'\n')
+        logging.debug('sent to Arduino2')
+      except:
+        pass
+      
+    if payload[:3] == 'CFG' and payload[-3:] == 'GFC':
+      logging.debug('got Mission Control CONFIGURATION data -> ' + payload)
+      try:
+        self.port.write(payload+'\n')
+        logging.debug('sent to Arduino2')
+      except:
+        pass
       
   def run(self):
     logging.debug('MQTT client starting')
@@ -49,5 +65,3 @@ class Serial2(Thread):
         break
       self.client.loop()
 
-        
-        
