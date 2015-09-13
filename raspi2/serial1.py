@@ -52,7 +52,7 @@ class Serial1(Thread):
       try:
         data = self.readline()
         logging.debug(data)
-        collision = find_collision(data)
+        collision = self.find_collision(data)
         logging.debug(collision)
         if (collision != "000" ):
           logging.debug("colision detected! " + collision)
