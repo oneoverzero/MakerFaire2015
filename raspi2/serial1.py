@@ -31,10 +31,10 @@ class Serial1(Thread):
     part = data.split('|')
 
     if (part[1] != "0.00" ):
-	  return "100"
+	  return "010"
 
     if (part[2] != "0.00" ):
-	  return "010"
+	  return "100"
 
     if (part[3] != "0.00" ):
 	  return "001"
