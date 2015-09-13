@@ -54,6 +54,7 @@ class Serial1(Thread):
         logging.debug(data)
         collision = find_collision(data)
         if (collision != "000" ):
+          logging.debug("colision detected! " + collision)
           mqttp.single("rover/command","COL" + collision + "LOC",hostname=mqttServer)
 
         mqttp.single("rover/telemetry",data,hostname=mqttServer)
