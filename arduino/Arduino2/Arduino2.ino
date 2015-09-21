@@ -103,20 +103,21 @@ char currentCommand;   // active command being executed (check also is we're pro
 int numCommand         = 0;   // command count received
 int cmdPointer         = 0;   // helper var for current command in list
 int processingCommands = 0;   // flag for helping us know if we're running or stopped
-int roverSpeed         = 255; // start it of with 80% power
+int roverSpeed         = 240; // start it of with 80% power
 int isRoverMoving      = 0;   // rover is NOT moving
 
 /* -----------------------------------------------------------------------------------------------------------*/
 // loop consts
 const int serialMilliesDelay  =  750; // defines for delays for next loop execution
 const int commandMilliesDelay = 1000;
-const int roverMoveMillies    = 2000;
+const int roverMoveMillies    = 1000;
 const int roverRotateMillies  = 1000;
 
 // loop vars
 unsigned long serialMillies = 0;    // read serialport each 'x' millies
 unsigned long movingMillies = 0;    // move rover for these millies
 unsigned long commandMillies = 0;   // move rover for these millies
+int inCollision = 0;                // are we in collision mode?
 
 // clear command list
 void resetCmdList() {
@@ -165,25 +166,30 @@ void readSerialLine() {
         char fwdright = inData.charAt(4);
         char backward = inData.charAt(5);
 
-        // invalidate current command by killing millies
-        movingMillies = millis();
+        // only process collisions if we're not avoiding them
+        if (inCollision == 0){
+          
+          // invalidate current command by killing millies
+          movingMillies = millis();
 
-        // stop rover
-        isRoverMoving = 0;
-        motor.stopMoving();
+          // stop rover
+          isRoverMoving = 0;
+          motor.stopMoving();
+          inCollision = 1;
 
-        // take evasive action with a RED LED
-        //setLEDCommandColor(whatever is vermelho)
-        if (fwdleft == '1') {
-          currentCommand = '5'; // ROR
-        } else if (fwdright == '1') {
-          currentCommand = '4'; // ROL
+          // take evasive action with a RED LED
+          //setLEDCommandColor(whatever is vermelho)
+          if (fwdleft == '1') {
+            currentCommand = '5'; // ROR
+          } else if (fwdright == '1') {
+            currentCommand = '4'; // ROL
+          }
+          if (backward == '1') {
+            currentCommand = '2'; // FWD
+          }
+          // get back to rpi2 and say we've parsed this command!
+          Serial.print('GOTCOL');
         }
-        if (backward == '1') {
-          currentCommand = '2'; // FWD
-        }
-        // get back to rpi2 and say we've parsed this command!
-        Serial.print('GOTCOL');
       }
       // Process inData
       // CFGABCGFC
@@ -408,6 +414,10 @@ void loop() {
     motor.stopMoving();
     // pause for 500mS
     delay(500);
+    // if we were avoiding something, it is now done
+    if (inCollision == 1) {
+      inCollision = 0;
+    }
   }
 }
 
