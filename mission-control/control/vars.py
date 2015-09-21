@@ -2,16 +2,11 @@
 # we import stuff globally here
 #
 import logging
-#import serial
 
 #
 #define global variables here
 #
-#mqttServer  = "localhost"
-
-mqttServer  = "192.168.69.3"
-#mqttServer  = "10.42.0.1"
-#mqttServer  = "localhost"
+mqttServer  = "10.42.0.1"
 
 serialPort1 = "/dev/ttyAMA0"
 serialBaud1 = 19200 
