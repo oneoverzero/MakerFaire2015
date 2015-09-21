@@ -6,7 +6,7 @@ class WS(object):
   def index(self,msg=""):
     print "got this! " + msg
     if msg[:3] == 'MIS' and msg[-3:] == 'SIM':
-      paho.single("rover/command",msg,hostname='127.0.0.1')
+      paho.single("rover/command",msg,hostname='192.168.69.3')
     return "ok"
 
 if __name__ == '__main__':

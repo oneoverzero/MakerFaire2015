@@ -4,7 +4,7 @@ Code for all things Maker Faire 2015
 
 Three folders per codepath
 
-Arduino1 collects and sends telemetry
+Arduino0 collects and sends telemetry
 
 Arduino2 takes care of physical electronics
 

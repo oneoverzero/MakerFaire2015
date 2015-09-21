@@ -2,8 +2,6 @@
 //#include <VarSpeedServo.h>
 
 /*
-// TODO GET SOFT PWM
-// https://code.google.com/p/rogue-code/wiki/SoftPWMLibraryDocumentation
 Pinout das ligacoes do Arduino2
 Leonardo clone, Arduino Pro Micro
 
@@ -50,10 +48,6 @@ int IN4 = A3;
 int ENB = 9;
 LMotorController motor(ENA, IN1, IN2, ENB, IN3, IN4, 0.6, 1);
 
-//VarSpeedServo topLeft;    // also same as bottomright
-//VarSpeedServo topRight;   // also same as bottomleft
-//VarSpeedServo turret;     // servo for camera turret horizontal movement
-
 const int servoTL = 9;   // the digital pin used for the servo
 const int servoTR = 10;  // the digital pin used for the servo
 const int turretP = 6;   // the digital pin used for the servo
@@ -70,10 +64,6 @@ const int turretP = 6;   // the digital pin used for the servo
   3 BCK move BaCKwards
   4 ROL rotate LEFT
   5 ROR rotate RIGHT
-  6 P1C take picture with main camera (centered)
-  7 PAN take 3 pictures with main camera, produce a panoramic image
-  8 LAS extend robotic arm and use laser
-  9 P2C extend robotic arm and take picture with auxiliary camera
 
   Navigation parameters from Mission Control
                    Speed in percentages of 255 max value
@@ -101,8 +91,8 @@ const int turretP = 6;   // the digital pin used for the servo
   V avoid right collision, rotate LEFT
   W avoid left collision, rotate RIGHT
   X set distance to avoid Collision
-  Y Set overall speed (10 to 90%)
-  Z NOP do nothing
+  Y 
+  Z 
 
  */
 
@@ -266,36 +256,6 @@ void setRoverRotateMillies() {
   movingMillies = millis() + roverRotateMillies;
 }
 
-// set LED command color
-void setLEDCommandColor(int command) {
-  // TODO figure out how to use those colors
-
-  /*
-  #define TONES 8
-  int RGBColors[TONES][3] = {
-  {255, 0, 0}, // Red
-  {0, 255, 0}, // Green
-  {0, 0, 255}, //Blue
-  {255, 255, 0}, // Yellow
-  {255, 255, 255}, // White
-  {128, 0, 255}, // Purple
-  {0, 255, 255}, // Cyan
-  {237, 120, 6} // Orange
-  };
-  void setColor (byte red, byte green, byte blue) {
-  // Common Cathode: 255-value
-   analogWrite(redPin, 255 - red);
-   analogWrite(bluePin, 255 - blue);
-   analogWrite(greenPin, 255 - green);
-  }
-
-  void setColorIndex(byte index) {
-   setColor(RGBColors[index][0], RGBColors[index][1], RGBColors[index][2]);
-  }
-
-  */
-}
-
 // get next command from queue
 void getNextCommand() {
   // get next from list
@@ -329,17 +289,6 @@ void setup() {
   isRoverMoving = 0;
   motor.stopMoving();
 
-  // initialize servos
-  //  topLeft.attach(servoTL);
-  //  topRight.attach(servoTR);
-  //  turret.attach(turretP);
-
-  // TODO setup straigt servo positions
-  // depends on hardware setup
-
-  // turn off LED
-  setLEDCommandColor(0);
-
   // set command pointer to 0
   cmdPointer = 0;
   currentCommand = 0;
@@ -361,9 +310,6 @@ void loop() {
 
   // process next command thing
   if (millis() >= commandMillies) {
-
-    // light'em up
-    setLEDCommandColor(currentCommand);
 
     // reset next run time
     setCommandMillies();

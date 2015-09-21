@@ -10,7 +10,8 @@ import logging
 #mqttServer  = "localhost"
 
 mqttServer  = "192.168.69.3"
-mqttServer  = "10.42.0.1"
+#mqttServer  = "10.42.0.1"
+#mqttServer  = "localhost"
 
 serialPort1 = "/dev/ttyAMA0"
 serialBaud1 = 19200 

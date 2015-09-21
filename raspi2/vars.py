@@ -7,8 +7,6 @@ import serial
 #
 #define global variables here
 #
-#mqttServer  = "localhost"
-#mqttServer  = "192.168.69.3"
 mqttServer  = "10.42.0.1"
 
 serialPort1 = "/dev/ttyAMA0"
