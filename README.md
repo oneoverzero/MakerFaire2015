@@ -15,3 +15,5 @@ runs python scripts as both client and publisher to MQTT queues on Mission Contr
 
 Mission Control is the main hub for all things
 
+WARNING: you must run a "git submodules" to get the web code
+
