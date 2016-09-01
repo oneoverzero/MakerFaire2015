@@ -1,4 +1,5 @@
 3D models used in this project
 
 Also available here
-http://www.thingiverse.com/thing:1025108
+https://www.thingiverse.com/thing:1028737
+(mostly designed by Basílio Vieira @baiavieira)
